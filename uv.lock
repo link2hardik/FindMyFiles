@@ -862,6 +862,7 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "pytest-asyncio" },
+    { name = "requests" },
     { name = "ruff" },
     { name = "taskipy" },
 ]
@@ -886,6 +887,7 @@ requires-dist = [
 dev = [
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-asyncio", specifier = ">=1.4.0" },
+    { name = "requests", specifier = ">=2.34.2" },
     { name = "ruff", specifier = ">=0.15.21" },
     { name = "taskipy", specifier = ">=1.14.1" },
 ]
