@@ -93,7 +93,7 @@ class LocalSQLiteFileStore(BaseFileStore):
 
             try:
                 f = open(file_path, "rb")
-                return IngestableFile(file_obj=f, name=file_row.original_name)
+                return IngestableFile(file_obj=f, name=file_row.original_name, file_id=id)
             except Exception as e:
                 raise FileStoreError(
                     f"Failed to open file from disk at {file_path}: {e}"
