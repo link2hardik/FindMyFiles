@@ -39,6 +39,6 @@ class BaseFileStore(ABC):
         pass
 
     @abstractmethod
-    def store(self, file: IngestableFile):
+    def store(self, file: IngestableFile) -> id:
         "stores file on the system and returns it's unique id"
         pass
