@@ -51,6 +51,9 @@ class LocalSQLiteFileStore(BaseFileStore):
                 f"Failed to create/initialize database (file_metadata.db): {e}"
             ) from e
 
+    def close(self) -> None:
+        self.engine.dispose()
+
     def get_metadata(self, id):
         with Session(self.engine) as session:
             try:

@@ -6,7 +6,6 @@ class VectorStoreError(Exception):
     """
     Custom exception for VectorStore errors.
     """
-
     pass
 
 
@@ -21,6 +20,12 @@ class BaseVectorStore(ABC):
     @abstractmethod
     def get(self, query: str, k=10, constraints: dict = None):
         "return the relevant chunks."
+        # TODO: Standardise the output format for any vectorstore implimentation
+
+    @abstractmethod
+    def close(self) -> None:
+        "releases resources owned by the vector store"
+        pass
 
     @staticmethod
     def get_md5(chunks: list[str]) -> list[str]:

@@ -44,3 +44,8 @@ class BaseFileStore(ABC):
     def store(self, file: IngestableFile) -> id:
         "stores file on the system and returns it's unique id"
         pass
+
+    @abstractmethod
+    def close(self) -> None:
+        "releases resources owned by the file store"
+        pass

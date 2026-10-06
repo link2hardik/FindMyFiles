@@ -45,6 +45,10 @@ class ChromaDBVectorStore(BaseVectorStore):
         self._client_factory = client_factory
         self._embedding_function = embedding_function
 
+    def close(self) -> None:
+        self.__dict__.pop("collection", None)
+        self.__dict__.pop("client", None)
+
     def add(self, chunks: list[str], metadatas: list[Metadata]):
         try:
             if not chunks or not metadatas:
