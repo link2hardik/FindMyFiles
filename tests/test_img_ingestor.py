@@ -15,6 +15,7 @@ from backend.ingestors.image_ingestor import ImageOCRIngestor
 def IngestableFile(file_obj, name=None, file_id=1):
     return _IngestableFile(file_obj, name=name, file_id=file_id)
 
+
 """Comprehensive unit tests for ImageOCRIngestor.
 
 RapidOCR and the OpenAI/Groq chat client are faked at the module boundary so

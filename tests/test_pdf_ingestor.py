@@ -12,6 +12,7 @@ from backend.ingestors.pdf_ingestor import PdfIngestor
 def IngestableFile(file_obj, name=None, file_id=1):
     return _IngestableFile(file_obj, name=name, file_id=file_id)
 
+
 """Comprehensive unit tests for PdfIngestor.
 
 Real PDFs are generated in-memory with pymupdf (text pages, scanned/blank

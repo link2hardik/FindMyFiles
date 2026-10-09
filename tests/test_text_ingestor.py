@@ -10,6 +10,7 @@ from backend.ingestors.text_ingestor import TextIngestor
 def IngestableFile(file_obj, name=None, file_id=1):
     return _IngestableFile(file_obj, name=name, file_id=file_id)
 
+
 """Comprehensive unit tests for TextIngestor.
 
 Covers text extraction behavior (plain text, markdown, multiple accepted
