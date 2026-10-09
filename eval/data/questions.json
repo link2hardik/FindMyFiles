@@ -1,0 +1,338 @@
+[
+  {
+    "question_id": 1,
+    "question": "What metadata should an application save for uploaded objects, and why is a checksum useful?",
+    "expected_file": "cloud_01_object_storage.md",
+    "document_id": "cloud_01",
+    "context": "Object storage metadata can include the original filename, media type, upload time, owner, and checksum. A checksum detects duplicate uploads and verifies that a downloaded file has not changed."
+  },
+  {
+    "question_id": 2,
+    "question": "How does a CDN use an origin server and cache-control headers to deliver files?",
+    "expected_file": "cloud_02_cdn_delivery.md",
+    "document_id": "cloud_02",
+    "context": "The origin server is authoritative. When an object is not in a nearby cache, the CDN fetches it from the origin and may retain it for the cache lifetime controlled by cache-control headers."
+  },
+  {
+    "question_id": 3,
+    "question": "What should a practical backup policy define, and how should restoration be tested?",
+    "expected_file": "cloud_03_backup_policy.md",
+    "document_id": "cloud_03",
+    "context": "A backup policy defines what is copied, how often it is copied, where copies are stored, and how restoration is tested. A restore drill should use an isolated environment, restore source data, rebuild derived indexes, and run health checks and representative searches."
+  },
+  {
+    "question_id": 4,
+    "question": "Which factors besides storage capacity can increase the cost of storing application files?",
+    "expected_file": "cloud_04_storage_costs.md",
+    "document_id": "cloud_04",
+    "context": "Storage cost also depends on request count, network egress, retention, backup copies, failed retries, and the compute required for extraction and embeddings."
+  },
+  {
+    "question_id": 5,
+    "question": "How does a solar microgrid balance generation, batteries, grid power, and flexible loads?",
+    "expected_file": "energy_01_solar_microgrid.md",
+    "document_id": "energy_01",
+    "context": "A controller decides when to use solar generation, charge batteries, draw from the grid, or reduce flexible loads. The policy depends on prices, weather forecasts, battery limits, and reliability requirements."
+  },
+  {
+    "question_id": 6,
+    "question": "How should wind power forecasts be evaluated without leaking future information into training?",
+    "expected_file": "energy_02_wind_forecasting.md",
+    "document_id": "energy_02",
+    "context": "Forecasts should be evaluated with time-based splits rather than random splits. The dataset should retain timestamps and only information available at prediction time."
+  },
+  {
+    "question_id": 7,
+    "question": "What physical limits must a battery storage simulation include to remain realistic?",
+    "expected_file": "energy_03_battery_storage.md",
+    "document_id": "energy_03",
+    "context": "A battery system has energy capacity, maximum charge and discharge power, round-trip efficiency, temperature limits, and degradation. Ignoring these limits can make a simulation look successful while failing in operation."
+  },
+  {
+    "question_id": 8,
+    "question": "How should a building energy-efficiency project measure savings without confusing weather or occupancy changes with improvements?",
+    "expected_file": "energy_04_building_efficiency.md",
+    "document_id": "energy_04",
+    "context": "Projects should establish a baseline and adjust savings for weather and occupancy. Evaluation should also compare energy use with comfort, indoor air quality, capital cost, and maintenance effort."
+  },
+  {
+    "question_id": 9,
+    "question": "How can a gardener improve soil health without over-fertilizing or damaging plants?",
+    "expected_file": "gardening_01_soil_health.md",
+    "document_id": "gardening_01",
+    "context": "A soil test can identify acidity and nutrient levels before suggesting lime or fertilizer. Over-fertilizing can pollute waterways and damage plants, while compost should be added according to soil conditions."
+  },
+  {
+    "question_id": 10,
+    "question": "What features should a small garden provide to support pollinators across the whole season?",
+    "expected_file": "gardening_02_pollinators.md",
+    "document_id": "gardening_02",
+    "context": "Pollinator-friendly gardens provide flowers, shelter, water, and protection from unnecessary pesticides. Early-, middle-, and late-season flowers provide food across a longer season."
+  },
+  {
+    "question_id": 11,
+    "question": "What are the most important requirements for growing plants successfully in containers?",
+    "expected_file": "gardening_03_container_gardens.md",
+    "document_id": "gardening_03",
+    "context": "Containers need drainage holes, a suitable growing medium, enough light, and plants with compatible water and light needs. Ordinary garden soil alone often drains poorly in a pot."
+  },
+  {
+    "question_id": 12,
+    "question": "When is the best time to water a garden, and how can watering be adjusted for different soil types?",
+    "expected_file": "gardening_04_water_management.md",
+    "document_id": "gardening_04",
+    "context": "Early-morning watering reduces evaporation. Sandy soil drains quickly, while clay soil may hold water but absorb it slowly. Soil-moisture checks and rain gauges help replace guesswork."
+  },
+  {
+    "question_id": 13,
+    "question": "How should someone increase dietary fiber while reducing digestive discomfort?",
+    "expected_file": "nutrition_01_fiber.md",
+    "document_id": "nutrition_01",
+    "context": "Fiber intake should increase gradually, with enough fluid and a variety of plant foods. People with digestive conditions or sudden symptoms should seek guidance from a qualified clinician."
+  },
+  {
+    "question_id": 14,
+    "question": "Why is there no single daily water target that is appropriate for everyone?",
+    "expected_file": "nutrition_02_hydration.md",
+    "document_id": "nutrition_02",
+    "context": "Hydration needs vary with body size, activity, climate, diet, and illness. People with heart, kidney, or fluid-balance conditions should follow healthcare advice instead of adopting a universal target."
+  },
+  {
+    "question_id": 15,
+    "question": "What makes a weekly meal plan practical and sustainable?",
+    "expected_file": "nutrition_03_meal_planning.md",
+    "document_id": "nutrition_03",
+    "context": "A workable plan accounts for budget, culture, allergies, schedule, and equipment. It can reuse ingredients across meals, include fast options, and store and reheat leftovers safely."
+  },
+  {
+    "question_id": 16,
+    "question": "How should serving sizes and percent daily values be interpreted when comparing food labels?",
+    "expected_file": "nutrition_04_food_labels.md",
+    "document_id": "nutrition_04",
+    "context": "Serving size is a reference amount and may differ from the amount eaten. Percent daily value is based on a general reference diet, so products should be compared using matching serving sizes and personal context."
+  },
+  {
+    "question_id": 17,
+    "question": "How can a software team turn a broad project goal into a small, measurable first release?",
+    "expected_file": "project_01_agile_planning.md",
+    "document_id": "project_01",
+    "context": "A useful plan defines a small first release and observable evidence that it works. Acceptance criteria can include Recall@5, response time, or an error message for unsupported files."
+  },
+  {
+    "question_id": 18,
+    "question": "What should a code reviewer look for beyond the lines directly changed in a pull request?",
+    "expected_file": "project_02_code_review.md",
+    "document_id": "project_02",
+    "context": "Reviewers should inspect module boundaries and effects on startup behavior, environment variables, and data compatibility. For ingestion code, they should check file handles, extraction failures, cleanup, and source-document metadata mapping."
+  },
+  {
+    "question_id": 19,
+    "question": "Which observability signals and ingestion metrics help explain what an application is doing?",
+    "expected_file": "project_03_observability.md",
+    "document_id": "project_03",
+    "context": "Logs describe events, metrics summarize behavior, and traces connect work across services. Ingestion metrics can include extraction duration, chunk count, embedding duration, queue wait time, and final task status."
+  },
+  {
+    "question_id": 20,
+    "question": "What steps should a safe software release include, and why is deploying an immutable artifact useful?",
+    "expected_file": "project_04_release_process.md",
+    "document_id": "project_04",
+    "context": "A safe release runs checks, reviews the change, builds an immutable artifact, deploys it, and verifies health. An exact image tag or digest makes the running code traceable to a commit."
+  },
+  {
+    "question_id": 21,
+    "question": "How should passwords be stored, and how is password hashing different from encryption?",
+    "expected_file": "security_01_passwords.md",
+    "document_id": "security_01",
+    "context": "Passwords should be stored as slow, salted hashes produced by algorithms such as Argon2id, scrypt, or bcrypt. Hashing is intended to be one-way, whereas encryption is reversible with a key."
+  },
+  {
+    "question_id": 22,
+    "question": "Where should API keys be stored, and what should happen if one is exposed in a repository?",
+    "expected_file": "security_02_api_keys.md",
+    "document_id": "security_02",
+    "context": "API keys belong in a secret manager, deployment environment, or ignored environment file rather than source code or logs. If a key appears in a repository, it should be rotated first and the exposure removed."
+  },
+  {
+    "question_id": 23,
+    "question": "What assets and threats should be considered when threat-modeling a file-search service?",
+    "expected_file": "security_03_threat_model.md",
+    "document_id": "security_03",
+    "context": "Important assets include uploaded files, extracted text, embeddings, credentials, and user identity data. Threats include unauthorized downloads, malicious files, prompt injection, denial of service, and credential theft."
+  },
+  {
+    "question_id": 24,
+    "question": "How should a project prioritize dependency vulnerabilities found by dependency and container scanning?",
+    "expected_file": "security_04_dependency_scanning.md",
+    "document_id": "security_04",
+    "context": "Prioritize vulnerabilities by exploitability and reachability. A vulnerable parser reachable by an upload endpoint is more urgent than a finding in a development-only tool, while high-severity policy failures should be explicit in CI."
+  },
+  {
+    "question_id": 25,
+    "question": "How should an application store uploaded PDFs, images, and audio while keeping metadata and file ownership separate from the file bytes?",
+    "expected_file": "cloud_01_object_storage.md",
+    "document_id": "cloud_01",
+    "context": "Object storage keeps files as objects in named buckets, while a relational database stores ownership, permissions, status, extraction results, and file relationships."
+  },
+  {
+    "question_id": 26,
+    "question": "What is the role of a CDN when many users request the same images, documents, or video files?",
+    "expected_file": "cloud_02_cdn_delivery.md",
+    "document_id": "cloud_02",
+    "context": "A CDN serves cached files from locations near users; the origin remains authoritative, and cache-control headers determine how long responses can be reused."
+  },
+  {
+    "question_id": 27,
+    "question": "What should a small application include in a practical backup policy, and how should restoration be tested?",
+    "expected_file": "cloud_03_backup_policy.md",
+    "document_id": "cloud_03",
+    "context": "A backup policy should define what is copied, how often, where copies are stored, and how restoration is tested. A restore drill should use an isolated environment, rebuild derived indexes, and run health checks."
+  },
+  {
+    "question_id": 28,
+    "question": "Which factors besides storage capacity can make a cloud storage system unexpectedly expensive?",
+    "expected_file": "cloud_04_storage_costs.md",
+    "document_id": "cloud_04",
+    "context": "Storage costs can include requests, network egress, backup copies, failed retries, retention, and compute for extraction and embeddings, not just the bytes stored."
+  },
+  {
+    "question_id": 29,
+    "question": "How does a solar microgrid balance variable generation, batteries, the utility grid, and flexible loads?",
+    "expected_file": "energy_01_solar_microgrid.md",
+    "document_id": "energy_01",
+    "context": "A solar microgrid combines local generation, storage, and loads. Its controller decides when to use solar, charge or discharge batteries, draw from the grid, or reduce flexible loads."
+  },
+  {
+    "question_id": 30,
+    "question": "How should wind power forecasts be evaluated without allowing future weather information to leak into training?",
+    "expected_file": "energy_02_wind_forecasting.md",
+    "document_id": "energy_02",
+    "context": "Wind forecast evaluation should use time-based splits instead of random splits, retain information available at prediction time, and compare errors with a persistence baseline."
+  },
+  {
+    "question_id": 31,
+    "question": "What physical limits must a battery storage simulation include to avoid producing an unrealistic control strategy?",
+    "expected_file": "energy_03_battery_storage.md",
+    "document_id": "energy_03",
+    "context": "Battery systems are constrained by energy capacity, charge and discharge power, round-trip efficiency, temperature range, and degradation."
+  },
+  {
+    "question_id": 32,
+    "question": "How can a building energy-efficiency project prove that savings came from improvements rather than favorable weather or low occupancy?",
+    "expected_file": "energy_04_building_efficiency.md",
+    "document_id": "energy_04",
+    "context": "The project should establish a baseline and adjust savings for weather and occupancy, then compare energy use with comfort, indoor air quality, cost, and maintenance effort."
+  },
+  {
+    "question_id": 33,
+    "question": "How do soil tests, compost, mulch, and soil texture affect the health of a small garden?",
+    "expected_file": "gardening_01_soil_health.md",
+    "document_id": "gardening_01",
+    "context": "Soil tests identify acidity and nutrient levels; compost can improve structure, mulch reduces evaporation and erosion, sandy soil drains quickly, and clay soil holds water but can compact."
+  },
+  {
+    "question_id": 34,
+    "question": "What features make a garden useful for bees, butterflies, and other pollinators throughout the season?",
+    "expected_file": "gardening_02_pollinators.md",
+    "document_id": "gardening_02",
+    "context": "Pollinator-friendly gardens provide flowers with varied shapes and bloom times, shelter, shallow clean water, and protection from unnecessary pesticides."
+  },
+  {
+    "question_id": 35,
+    "question": "What should I consider when choosing containers, growing medium, and watering practices for a balcony garden?",
+    "expected_file": "gardening_03_container_gardens.md",
+    "document_id": "gardening_03",
+    "context": "Containers need drainage holes, an appropriate growing medium, enough light, and plants with compatible water and light needs. Small containers dry faster, and ordinary garden soil usually drains poorly in pots."
+  },
+  {
+    "question_id": 36,
+    "question": "How can a garden watering schedule reduce evaporation and runoff without overwatering plants after rain?",
+    "expected_file": "gardening_04_water_management.md",
+    "document_id": "gardening_04",
+    "context": "Efficient watering targets the root zone using drip lines, soaker hoses, or careful hand watering. Early morning watering, mulch, rain gauges, and soil-moisture checks reduce guesswork."
+  },
+  {
+    "question_id": 37,
+    "question": "How should someone increase dietary fiber without causing unnecessary digestive discomfort?",
+    "expected_file": "nutrition_01_fiber.md",
+    "document_id": "nutrition_01",
+    "context": "Fiber intake should increase gradually, with enough fluid and varied plant foods such as beans, whole grains, vegetables, fruits, nuts, and seeds."
+  },
+  {
+    "question_id": 38,
+    "question": "Why is there no single daily water target that is appropriate for every person?",
+    "expected_file": "nutrition_02_hydration.md",
+    "document_id": "nutrition_02",
+    "context": "Hydration needs vary with body size, activity, climate, diet, and illness. Heat, exercise, fever, vomiting, diarrhea, and some medications increase fluid loss, while excessive water intake can also be harmful."
+  },
+  {
+    "question_id": 39,
+    "question": "How can I create a practical weekly meal plan without needing seven different recipes?",
+    "expected_file": "nutrition_03_meal_planning.md",
+    "document_id": "nutrition_03",
+    "context": "A flexible plan can reuse cooked grains, vegetables, beans, eggs, or chicken in bowls, wraps, soups, and salads while accounting for budget, culture, allergies, schedule, and food safety."
+  },
+  {
+    "question_id": 40,
+    "question": "How should serving sizes and ingredient lists be used when comparing two packaged foods?",
+    "expected_file": "nutrition_04_food_labels.md",
+    "document_id": "nutrition_04",
+    "context": "Serving size is a reference amount and packages may contain multiple servings. Ingredients are listed by weight, so similar products should be compared using matching serving sizes and relevant nutrients."
+  },
+  {
+    "question_id": 41,
+    "question": "How can a software team turn a broad project goal into a small, measurable first release?",
+    "expected_file": "project_01_agile_planning.md",
+    "document_id": "project_01",
+    "context": "A useful plan defines a small first release, testable outcomes, acceptance criteria, and measurements such as Recall@5, response time, or required error messages."
+  },
+  {
+    "question_id": 42,
+    "question": "What makes a code review useful beyond checking formatting and personal preferences?",
+    "expected_file": "project_02_code_review.md",
+    "document_id": "project_02",
+    "context": "A review should focus on correctness, security, maintainability, missing tests, module boundaries, file handles, error paths, cleanup, and preservation of source-document metadata."
+  },
+  {
+    "question_id": 43,
+    "question": "Which observability signals and metrics are useful for monitoring a file ingestion and retrieval pipeline?",
+    "expected_file": "project_03_observability.md",
+    "document_id": "project_03",
+    "context": "Logs, metrics, and traces describe events, summarize behavior, and connect work across services. Ingestion metrics include extraction duration, chunk count, embedding duration, queue wait time, and task status."
+  },
+  {
+    "question_id": 44,
+    "question": "What should a safe software release process verify before and after deployment?",
+    "expected_file": "project_04_release_process.md",
+    "document_id": "project_04",
+    "context": "A release should run checks and review, build an immutable artifact, deploy an exact tag or digest, verify health, preserve persistent data, and maintain a tested rollback plan."
+  },
+  {
+    "question_id": 45,
+    "question": "Why should passwords be stored with a slow salted hash instead of plaintext or reversible encryption?",
+    "expected_file": "security_01_passwords.md",
+    "document_id": "security_01",
+    "context": "Passwords should use a slow password-focused algorithm such as Argon2id, scrypt, or bcrypt with a unique random salt and a reviewed work factor. Hashing is intended to be one-way, unlike encryption."
+  },
+  {
+    "question_id": 46,
+    "question": "Where should API keys be stored, and what should happen if one is committed to a repository?",
+    "expected_file": "security_02_api_keys.md",
+    "document_id": "security_02",
+    "context": "API keys should be supplied at runtime through a secret manager, environment variable, or mounted secret file. An exposed key should be rotated or revoked immediately, usage inspected, and the runtime secret replaced."
+  },
+  {
+    "question_id": 47,
+    "question": "What assets and attack paths should be considered when threat modeling a file-search service?",
+    "expected_file": "security_03_threat_model.md",
+    "document_id": "security_03",
+    "context": "Important assets include uploaded files, extracted text, embeddings, credentials, and identity data. Threats include unauthorized downloads, malicious files, prompt injection, denial of service, and credential theft."
+  },
+  {
+    "question_id": 48,
+    "question": "How should a project prioritize vulnerabilities found in dependencies and container images?",
+    "expected_file": "security_04_dependency_scanning.md",
+    "document_id": "security_04",
+    "context": "Prioritize findings by exploitability and reachability, fixing high-severity reachable issues first. Dependency and container scans should cover language and operating-system packages, with clearly defined CI severity policies."
+  }
+]

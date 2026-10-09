@@ -4,7 +4,7 @@ __pycache__/
 # ENVIRONMENT FILES
 .env
 
-data/
+data/work
 temp-13371.rdb
 dump.rdb
 .ruff_cache/
