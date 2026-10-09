@@ -1,12 +1,10 @@
-from backend.ingestors.base_ingestor import BaseIngestor
 from backend.chunker import BaseChunker
-from backend.filestore import BaseFileStore,IngestableFile, FileStoreError
+from backend.filestore import BaseFileStore,IngestableFile
 from backend.filestore.local_filestore import LocalSQLiteFileStore
 from backend.app_state import AppState
-from backend.ingestors import BaseIngestor,IngestionError
+from backend.ingestors import BaseIngestor, IngestionError
 from backend.vector_store import BaseVectorStore
 from backend.vector_store.local_vec_store import ChromaDBVectorStore
-import os
 import shutil
 
 class EvalApp:

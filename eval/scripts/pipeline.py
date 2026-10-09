@@ -1,5 +1,4 @@
 from eval.scripts.eval_app import EvalApp
-from pathlib import Path
 from backend.filestore import IngestableFile
 import json
 import os
@@ -34,6 +33,7 @@ def complie_result(app:EvalApp, result): # to be set up according to the vector 
     for metadata, distance in zip(
         result["metadatas"][0],
         result["distances"][0],
+        strict = True
     ):
         file_id_runtime = metadata["file_id"]
         document_id = app.file_map[file_id_runtime]
