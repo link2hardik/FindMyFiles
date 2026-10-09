@@ -1,0 +1,30 @@
+[
+  {
+    "name": "demo_512",
+    "description": "Demo app with 512-character chunks",
+    "accepted_formats": {
+      "wav": "audio",
+      "jpg": "image",
+      "md": "text",
+      "txt": "text",
+      "pdf": "pdf"
+    },
+    "chunk_size": 512,
+    "overlap": 64,
+    "work_dir": "eval/data/work/demo_512"
+  },
+  {
+    "name": "demo_256",
+    "description": "Demo app with 256-character chunks",
+    "accepted_formats": {
+      "wav": "audio",
+      "jpg": "image",
+      "md": "text",
+      "txt": "text",
+      "pdf": "pdf"
+    },
+    "chunk_size": 256,
+    "overlap": 32,
+    "work_dir": "eval/data/work/demo_256"
+  }
+]
