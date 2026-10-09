@@ -6,6 +6,7 @@ class VectorStoreError(Exception):
     """
     Custom exception for VectorStore errors.
     """
+
     pass
 
 

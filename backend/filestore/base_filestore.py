@@ -10,13 +10,15 @@ class FileStoreError(Exception):
 
 
 class IngestableFile:
-    def __init__(self, file_obj: io.IOBase, name: str | None = None, file_id :int | None = None):
+    def __init__(
+        self, file_obj: io.IOBase, name: str | None = None, file_id: int | None = None
+    ):
         """
         Accepts any file-like object passed from the application.
         """
         if not isinstance(file_obj, io.IOBase):
             raise FileStoreError("file_obj must be an io.IOBase instance")
-        
+
         self.file_id = file_id
         self.file_obj = file_obj
         self.file_name = name if name else getattr(file_obj, "name", "unknown_source")

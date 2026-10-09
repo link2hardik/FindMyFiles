@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 
 class Metadata(BaseModel):
-    file_id:int
+    file_id: int
     file_name: str
     type: str
     extension: str
@@ -63,10 +63,10 @@ class BaseIngestor(ABC):
     def extract_metadata(self, file: IngestableFile) -> Metadata:
         try:
             return Metadata(
-                file_id = file.file_id,
+                file_id=file.file_id,
                 file_name=file.file_name,
                 type=self.type,
-                extension=file.extension
+                extension=file.extension,
             )
         except Exception as e:
             raise IngestionError(f"Failed to extract metadata: {e}") from e
