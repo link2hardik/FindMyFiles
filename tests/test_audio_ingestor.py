@@ -1,9 +1,14 @@
 import pytest
 
 import backend.ingestors.audio_ingestor as m
-from backend.filestore.base_filestore import IngestableFile
+from backend.filestore.base_filestore import IngestableFile as _IngestableFile
 from backend.ingestors.audio_ingestor import AudioIngestor
 from backend.ingestors.base_ingestor import BaseIngestor, IngestionError, Metadata
+
+
+def IngestableFile(file_obj, name=None, file_id=1):
+    return _IngestableFile(file_obj, name=name, file_id=file_id)
+
 
 """Comprehensive unit tests for AudioIngestor.
 

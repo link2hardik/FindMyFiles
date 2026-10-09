@@ -56,6 +56,9 @@ class AppState:
         except Exception as e:
             raise AppStateError(f"Failed to initialize AppState Database: {e}") from e
 
+    def close(self) -> None:
+        self.engine.dispose()
+
     def insert_file(
         self,
         file_name: str,

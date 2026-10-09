@@ -35,11 +35,11 @@ def _isolated_registry():
 
 def _fake_file(name="test.txt", content=b"hello world"):
     """Return an IngestableFile with readable BytesIO."""
-    return IngestableFile(io.BytesIO(content), name=name)
+    return IngestableFile(io.BytesIO(content), name=name, file_id=1)
 
 
 def _fake_metadata(file_name="test.txt", extension="txt"):
-    return Metadata(file_name=file_name, type="text", extension=extension)
+    return Metadata(file_id=1, file_name=file_name, type="text", extension=extension)
 
 
 class FakeIngestor(BaseIngestor):

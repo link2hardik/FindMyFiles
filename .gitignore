@@ -5,6 +5,7 @@ __pycache__/
 .env
 
 data/
+eval/data/work
 temp-13371.rdb
 dump.rdb
 .ruff_cache/
