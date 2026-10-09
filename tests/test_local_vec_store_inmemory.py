@@ -106,12 +106,12 @@ def make_store(fake_client):
     return ChromaDBVectorStore(path="unused", client_factory=lambda: fake_client)
 
 
-def make_metadata(file_name="a.txt", extension="txt", created_at_ts=None):
+def make_metadata(file_name="a.txt", extension="txt", created_at_ts=None, file_id=1):
     """Build a minimal valid Metadata instance for testing."""
     kwargs = {"type": "text"}
     if created_at_ts is not None:
         kwargs["created_at_ts"] = created_at_ts
-    return Metadata(file_name=file_name, extension=extension, **kwargs)
+    return Metadata(file_id=file_id, file_name=file_name, extension=extension, **kwargs)
 
 
 def md5_ids(chunks):
