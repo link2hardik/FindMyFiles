@@ -170,10 +170,14 @@ def get_file_contents(file_id: int):
     )
 
 
-@app.get("/files/{file_id}")
-def file_status(file_id: int):
+@app.get("/files/{app_state_id}")
+def file_status(app_state_id: int):
+    """Ingestion status by AppState ID (the `app_state_id` from POST /upload/).
+
+    The response's `file_id` is the file-store ID used by GET /file/{file_id}.
+    """
     try:
-        return APP_STATE.get_status_by_id(file_id)
+        return APP_STATE.get_status_by_id(app_state_id)
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
 

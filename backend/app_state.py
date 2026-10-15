@@ -85,15 +85,16 @@ class AppState:
         except Exception as e:
             raise AppStateError(f"Failed to insert file: {e}") from e
 
-    def update_file(self, file_id: int, status=None, error_msg=None):
+    def update_file(self, app_state_id: int, status=None, error_msg=None):
+        """Update a row by its AppState ID (the id returned by insert_file)."""
         try:
             with Session(self.engine) as session:
-                statement = select(AppStateDB).where(AppStateDB.id == file_id)
+                statement = select(AppStateDB).where(AppStateDB.id == app_state_id)
                 file_row = session.exec(statement).one_or_none()
 
                 if not file_row:
                     raise FileNotFoundError(
-                        f"No file entry found in database for ID: {file_id}"
+                        f"No file entry found in database for ID: {app_state_id}"
                     )
 
                 if status is not None:
@@ -104,17 +105,18 @@ class AppState:
         except Exception as e:
             raise AppStateError(f"Failed to update file: {e}") from e
 
-    def get_status_by_id(self, file_id):
+    def get_status_by_id(self, app_state_id):
+        """Return the status row for an AppState ID (not the file-store ID)."""
         try:
             with Session(self.engine) as session:
-                statement = select(AppStateDB).where(AppStateDB.id == file_id)
+                statement = select(AppStateDB).where(AppStateDB.id == app_state_id)
                 file_row = session.exec(statement).one_or_none()
         except Exception as e:
             raise AppStateError(f"Failed to get status by id: {e}") from e
 
         if not file_row:
             raise FileNotFoundError(
-                f"No file entry found in database for ID: {file_id}"
+                f"No file entry found in database for ID: {app_state_id}"
             )
 
         return row_to_dict(file_row)
