@@ -65,10 +65,10 @@ class ChromaDBVectorStore(BaseVectorStore):
                 raise VectorStoreError("All metadatas must be instances of Metadata")
 
             metadata_dicts = [m.model_dump() for m in metadatas]
+            ids = self.get_chunk_ids(chunks, metadatas)
 
-            self.collection.add(
-                ids=self.get_md5(chunks), documents=chunks, metadatas=metadata_dicts
-            )
+            # upsert keeps re-running ingestion for the same file idempotent.
+            self.collection.upsert(ids=ids, documents=chunks, metadatas=metadata_dicts)
         except VectorStoreError as e:
             raise e
         except Exception as e:

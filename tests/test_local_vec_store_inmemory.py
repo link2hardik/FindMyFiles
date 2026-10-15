@@ -63,6 +63,11 @@ class FakeCollection:
             raise self.add_error
         self.added_calls.append((ids, documents, metadatas))
 
+    def upsert(self, ids, documents, metadatas):
+        if self.add_error:
+            raise self.add_error
+        self.added_calls.append((ids, documents, metadatas))
+
     def query(self, **kwargs):
         if self.query_error:
             raise self.query_error
@@ -114,22 +119,23 @@ def make_metadata(file_name="a.txt", extension="txt", created_at_ts=None, file_i
     return Metadata(file_id=file_id, file_name=file_name, extension=extension, **kwargs)
 
 
-def md5_ids(chunks):
-    """Mirror BaseVectorStore.get_md5 for expected-id assertions."""
-    return [hashlib.md5(chunk.encode("utf-8")).hexdigest() for chunk in chunks]
+def chunk_ids(chunks, file_id=1):
+    """Mirror the {file_id}:{index}:{md5} scheme for expected-id assertions."""
+    digests = [hashlib.md5(chunk.encode("utf-8")).hexdigest() for chunk in chunks]
+    return [f"{file_id}:{i}:{d}" for i, d in enumerate(digests)]
 
 
 class TestAddBehavior:
     def test_add_then_query_returns_inserted_document(self, store):
         """A chunk added to the real in-memory engine is returned verbatim by
-        get(), under its md5 id, proving the full add-index-query path."""
+        get(), under its file-scoped id, proving the full add-index-query path."""
         chunks = ["the quick brown fox", "jumps over the lazy dog"]
         store.add(chunks, [make_metadata(), make_metadata("b.txt")])
 
         results = store.get(query=chunks[0], k=1)
 
         assert results["documents"][0] == [chunks[0]]
-        assert results["ids"][0] == md5_ids([chunks[0]])
+        assert results["ids"][0] == chunk_ids([chunks[0]])
 
     def test_collection_count_matches_added_chunks(self, store):
         """The real collection count equals the number of added chunks."""
@@ -161,13 +167,34 @@ class TestAddBehavior:
 
         assert results["metadatas"][0] == [metadata_dicts[0]]
 
-    def test_add_same_chunk_twice_deduplicates(self, store):
-        """Identical chunks share an md5 id, so re-adding is an upsert and
-        the collection count stays at the number of unique chunks."""
-        store.add(["dup"], [make_metadata()])
-        store.add(["dup"], [make_metadata("b.txt")])
+    def test_reingesting_same_file_is_idempotent(self, store):
+        """Re-adding the same file (same file_id) upserts its chunks instead
+        of duplicating them, so a retried ingestion task is safe."""
+        store.add(["dup"], [make_metadata(file_id=7)])
+        store.add(["dup"], [make_metadata(file_id=7)])
 
         assert store.collection.count() == 1
+
+    def test_same_text_within_one_file_is_stored_twice(self, store):
+        """Repeated identical chunks inside a single file do not raise
+        DuplicateIDError; each occurrence is indexed at its own position."""
+        chunks = ["repeated line", "repeated line"]
+        store.add(chunks, [make_metadata(file_id=3)] * 2)
+
+        assert store.collection.count() == 2
+        results = store.get(query="repeated line", k=2)
+        assert results["ids"][0] == chunk_ids(chunks, file_id=3)
+
+    def test_same_text_in_two_files_keeps_both_owners(self, store):
+        """Identical chunk text from two different files is indexed for both,
+        with each chunk still pointing at its own file's metadata."""
+        store.add(["shared text"], [make_metadata("a.txt", file_id=1)])
+        store.add(["shared text"], [make_metadata("b.txt", file_id=2)])
+
+        assert store.collection.count() == 2
+        results = store.get(query="shared text", k=2)
+        owners = sorted(m["file_name"] for m in results["metadatas"][0])
+        assert owners == ["a.txt", "b.txt"]
 
 
 class TestWhereFilters:
