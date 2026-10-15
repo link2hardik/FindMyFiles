@@ -377,6 +377,18 @@ class TestApiCaption:
             "data:image/jpeg;base64," + base64.b64encode(b"img-data").decode()
         )
 
+    def test_png_payload_uses_png_mime_type(self, tmp_path, isolated_registry):
+        """PNG bytes are sent with image/png, not a hardcoded image/jpeg."""
+        ingestor = make_ingestor(["png"], use_api=True)
+        ingestor.client = FakeOpenAIClient()
+        png_bytes = b"\x89PNG\r\n\x1a\n" + b"rest"
+
+        with make_file(tmp_path, "pic.png", data=png_bytes) as f:
+            ingestor.api_caption(IngestableFile(f, "pic.png"))
+
+        url = ingestor.client.calls[0]["messages"][0]["content"][1]["image_url"]["url"]
+        assert url.startswith("data:image/png;base64,")
+
     def test_seeks_file_before_encoding(self, isolated_registry):
         """The file pointer is reset to 0 before the image is read/encoded."""
         ingestor = make_ingestor(["png"], use_api=True)
@@ -499,7 +511,7 @@ class TestExtractText:
 
         with make_file(tmp_path, "pic.png") as f:
             ingestor = make_ingestor(["png"], use_api=False)
-            with pytest.raises(IngestionError, match="didn't produce text via OCR"):
+            with pytest.raises(IngestionError, match="produced no text"):
                 ingestor.extract_text(IngestableFile(f, "pic.png"))
 
     def test_empty_ocr_with_api_caption_returns_caption(
@@ -513,20 +525,56 @@ class TestExtractText:
         with make_file(tmp_path, "pic.png") as f:
             text, metadata = ingestor.extract_text(IngestableFile(f, "pic.png"))
 
-        assert text == ", Image Description: a blank page"
+        assert text == "Image Description: a blank page"
         assert metadata.type == "img"
 
-    def test_caption_ingestion_error_propagates_unchanged(
-        self, tmp_path, isolated_registry, monkeypatch
-    ):
-        """A missing-key failure inside api_caption is not re-wrapped."""
+    def test_missing_key_keeps_ocr_text(self, tmp_path, isolated_registry, monkeypatch):
+        """With use_api=True but no API key, OCR text still ingests; captioning
+        is skipped instead of failing the whole image."""
         monkeypatch.setattr(m, "get_ocr_engine", lambda: FakeOcrEngine())
         ingestor = make_ingestor(["png"], use_api=True)
 
         with make_file(tmp_path, "pic.png") as f:
-            with pytest.raises(IngestionError, match="API key not provided.") as exc:
+            text, _ = ingestor.extract_text(IngestableFile(f, "pic.png"))
+
+        assert text == "hello world"
+
+    def test_api_failure_keeps_ocr_text(self, tmp_path, isolated_registry, monkeypatch):
+        """A failing vision API does not discard successfully OCR'd text."""
+        monkeypatch.setattr(m, "get_ocr_engine", lambda: FakeOcrEngine())
+        ingestor = make_ingestor(["png"], use_api=True)
+        ingestor.client = FakeOpenAIClient(error=RuntimeError("api down"))
+
+        with make_file(tmp_path, "pic.png") as f:
+            text, metadata = ingestor.extract_text(IngestableFile(f, "pic.png"))
+
+        assert text == "hello world"
+        assert metadata.file_name == "pic.png"
+
+    def test_api_failure_without_ocr_text_raises(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
+        """When neither OCR nor the API yields text, extraction fails."""
+        monkeypatch.setattr(m, "get_ocr_engine", lambda: FakeOcrEngine(result=[]))
+        ingestor = make_ingestor(["png"], use_api=True)
+        ingestor.client = FakeOpenAIClient(error=RuntimeError("api down"))
+
+        with make_file(tmp_path, "pic.png") as f:
+            with pytest.raises(IngestionError, match="produced no text"):
                 ingestor.extract_text(IngestableFile(f, "pic.png"))
-        assert exc.value.__cause__ is None
+
+    def test_caption_only_when_ocr_is_empty(
+        self, tmp_path, isolated_registry, monkeypatch
+    ):
+        """A blank image with a successful caption ingests the caption alone."""
+        monkeypatch.setattr(m, "get_ocr_engine", lambda: FakeOcrEngine(result=[]))
+        ingestor = make_ingestor(["png"], use_api=True)
+        ingestor.client = FakeOpenAIClient(content="a blank page")
+
+        with make_file(tmp_path, "pic.png") as f:
+            text, _ = ingestor.extract_text(IngestableFile(f, "pic.png"))
+
+        assert text == "Image Description: a blank page"
 
     def test_ocr_engine_failure_wraps_with_ingestion_context(
         self, tmp_path, isolated_registry, monkeypatch
