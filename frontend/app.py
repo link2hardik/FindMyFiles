@@ -215,9 +215,7 @@ def get_file_metadata_map():
     except requests.RequestException:
         return {}
     return {
-        row["file_name"]: row
-        for row in response.json()
-        if row.get("file_name") is not None
+        row["file_id"]: row for row in response.json() if row.get("file_id") is not None
     }
 
 
@@ -288,8 +286,8 @@ def search_files(query, k, date_from, date_to, selected_formats):
     seen_ids = set()
     for entry in file_summary:
         name = entry["file_name"]
-        meta = metadata_map.get(name, {})
-        file_id = meta.get("file_id")
+        file_id = entry.get("file_id")
+        meta = metadata_map.get(file_id, {}) if file_id is not None else {}
         if file_id is not None and file_id not in seen_ids:
             seen_ids.add(file_id)
             download_choices.append((name, file_id))

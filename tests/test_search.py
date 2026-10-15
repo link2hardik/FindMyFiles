@@ -268,3 +268,57 @@ class TestShapeSearchResponse:
         assert result["filters"]["extension"] is None
         assert result["filters"]["date_from"] is None
         assert result["filters"]["date_to"] is None
+
+
+class TestSameNameFiles:
+    def _make_request(self):
+        return SearchRequest(q="test", k=10)
+
+    def test_same_name_different_file_ids_stay_separate(self):
+        """Two uploads named report.pdf are summarised as two files."""
+        raw = {
+            "ids": [["c1", "c2", "c3"]],
+            "documents": [["t1", "t2", "t3"]],
+            "metadatas": [
+                [
+                    {"file_name": "report.pdf", "file_id": 1},
+                    {"file_name": "report.pdf", "file_id": 2},
+                    {"file_name": "report.pdf", "file_id": 1},
+                ]
+            ],
+            "distances": [[0.2, 0.9, 0.4]],
+        }
+        result = shape_search_response(raw, self._make_request())
+
+        assert len(result["files"]) == 2
+        by_id = {f["file_id"]: f for f in result["files"]}
+        assert by_id[1]["hit_count"] == 2
+        assert by_id[2]["hit_count"] == 1
+        assert by_id[1]["best_distance"] == 0.2
+
+    def test_summary_entries_carry_file_id(self):
+        """Each file summary and result exposes its file_id."""
+        raw = {
+            "ids": [["c1"]],
+            "documents": [["t1"]],
+            "metadatas": [[{"file_name": "a.txt", "file_id": 9}]],
+            "distances": [[0.5]],
+        }
+        result = shape_search_response(raw, self._make_request())
+
+        assert result["files"][0]["file_id"] == 9
+        assert result["results"][0]["file"]["file_id"] == 9
+
+    def test_legacy_chunks_without_file_id_group_by_name(self):
+        """Chunks indexed before file_id existed still group by file name."""
+        raw = {
+            "ids": [["c1", "c2"]],
+            "documents": [["t1", "t2"]],
+            "metadatas": [[{"file_name": "old.txt"}, {"file_name": "old.txt"}]],
+            "distances": [[0.1, 0.3]],
+        }
+        result = shape_search_response(raw, self._make_request())
+
+        assert len(result["files"]) == 1
+        assert result["files"][0]["hit_count"] == 2
+        assert result["files"][0]["file_id"] is None
