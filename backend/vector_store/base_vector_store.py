@@ -35,3 +35,17 @@ class BaseVectorStore(ABC):
             return [hashlib.md5(chunk.encode("utf-8")).hexdigest() for chunk in chunks]
         except Exception as e:
             raise VectorStoreError(f"Failed to get md5 for chunks: {e}") from e
+
+    @classmethod
+    def get_chunk_ids(cls, chunks: list[str], metadatas: list) -> list[str]:
+        """Build IDs unique per (file, chunk position, content).
+
+        Text hashes alone collide when the same text appears twice in one
+        file or in two files. Scoping by file_id and position keeps every
+        chunk distinct while still reflecting its content.
+        """
+        hashes = cls.get_md5(chunks)
+        return [
+            f"{meta.file_id}:{index}:{digest}"
+            for index, (meta, digest) in enumerate(zip(metadatas, hashes, strict=True))
+        ]

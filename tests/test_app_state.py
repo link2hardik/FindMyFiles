@@ -263,3 +263,23 @@ class TestLifecycle:
         final = state.get_status_by_id(row_id)
         assert final["status"] == "Ingestion Failed"
         assert final["error_message"] == "OCR crashed"
+
+
+class TestIdSpaces:
+    def test_status_lookup_uses_app_state_id_not_file_id(self, state):
+        """get_status_by_id resolves the AppState ID; the returned file_id is
+        the separate file-store ID, so the two never get conflated."""
+        app_state_id = state.insert_file("doc.txt", "txt", "pending", file_id=42)
+
+        row = state.get_status_by_id(app_state_id)
+
+        assert row["app_state_id"] == app_state_id
+        assert row["file_id"] == 42
+        assert app_state_id != 42
+
+    def test_file_store_id_is_not_a_status_key(self, state):
+        """Looking up a file_id that is not an AppState ID finds nothing."""
+        state.insert_file("doc.txt", "txt", "pending", file_id=42)
+
+        with pytest.raises(FileNotFoundError):
+            state.get_status_by_id(42)

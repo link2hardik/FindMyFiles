@@ -1,8 +1,19 @@
 import os
-from celery import Celery
+from pathlib import Path
 
-# Define your Redis URL (adjust host/port if using Docker)
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+from celery import Celery
+from dotenv import load_dotenv
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+DEFAULT_REDIS_URL = "redis://localhost:6379/0"
+
+
+def resolve_redis_url(env_path: Path = PROJECT_ROOT / ".env") -> str:
+    load_dotenv(dotenv_path=env_path, override=False)
+    return os.getenv("REDIS_URL", DEFAULT_REDIS_URL)
+
+
+REDIS_URL = resolve_redis_url()
 
 celery_app = Celery("worker", broker=REDIS_URL, backend=REDIS_URL)
 

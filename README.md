@@ -123,8 +123,10 @@ Use `docker compose down -v` only when you intentionally want to delete applicat
 | `POST` | `/upload/` | Upload a supported file and queue ingestion |
 | `POST` | `/search/` | Search indexed content with a natural-language query |
 | `GET` | `/files/` | List files and ingestion metadata |
-| `GET` | `/files/{file_id}` | Get the ingestion status for a file |
-| `GET` | `/file/{file_id}` | Retrieve the original file |
+| `GET` | `/files/{app_state_id}` | Get the ingestion status by the `app_state_id` returned from `/upload/` |
+| `GET` | `/file/{file_id}` | Retrieve the original file by the `file_id` from `/upload/` or `/files/` |
+
+Note: `app_state_id` (ingestion status record) and `file_id` (stored file) are different ID spaces. Status responses include both.
 | `GET` | `/formats` | List supported file extensions |
 
 Interactive API documentation is available at <http://127.0.0.1:8000/docs>.

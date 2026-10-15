@@ -58,6 +58,10 @@ def shape_search_response(raw: dict, request: SearchRequest) -> dict:
     ):
         score = normalize_distance(dist)
         file_name = meta.get("file_name", "unknown")
+        file_id = meta.get("file_id")
+        # Group by file_id so distinct uploads sharing a name stay separate.
+        # Chunks written before file_id existed fall back to the name.
+        key = file_id if file_id is not None else ("name", file_name)
 
         results.append(
             {
@@ -67,6 +71,7 @@ def shape_search_response(raw: dict, request: SearchRequest) -> dict:
                 "distance": round(dist, 4),
                 "score": score,
                 "file": {
+                    "file_id": file_id,
                     "file_name": file_name,
                     "extension": meta.get("extension"),
                     "created_at_ts": meta.get("created_at_ts"),
@@ -75,8 +80,9 @@ def shape_search_response(raw: dict, request: SearchRequest) -> dict:
         )
 
         entry = file_summary.setdefault(
-            file_name,
+            key,
             {
+                "file_id": file_id,
                 "file_name": file_name,
                 "hit_count": 0,
                 "best_score": score,

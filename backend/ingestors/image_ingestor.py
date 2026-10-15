@@ -1,4 +1,5 @@
 import base64
+import logging
 import os
 import time
 from functools import cached_property
@@ -17,6 +18,25 @@ LLM_API_KEY = (
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1")
 LLM_VISION_MODEL = os.getenv("LLM_VISION_MODEL", "qwen/qwen3.6-27b")
 REQUEST_LIMIT = 5
+
+logger = logging.getLogger(__name__)
+
+_MIME_SIGNATURES = (
+    (b"\x89PNG\r\n\x1a\n", "image/png"),
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"GIF87a", "image/gif"),
+    (b"GIF89a", "image/gif"),
+)
+
+
+def detect_mime_type(image_bytes: bytes) -> str:
+    """Infer the image MIME type from its magic bytes (JPEG if unknown)."""
+    for signature, mime_type in _MIME_SIGNATURES:
+        if image_bytes.startswith(signature):
+            return mime_type
+    if image_bytes[:4] == b"RIFF" and image_bytes[8:12] == b"WEBP":
+        return "image/webp"
+    return "image/jpeg"
 
 
 def encode_image(image_file):
@@ -47,18 +67,39 @@ class ImageOCRIngestor(BaseIngestor):
 
     def extract_text(self, file):
         try:
-            text = self.ocr_extract(file)
-            if self.use_api:
-                text += f", Image Description: {self.api_caption(file)}"
-            if text == "":
+            parts = []
+            ocr_text = self.ocr_extract(file).strip()
+            if ocr_text:
+                parts.append(ocr_text)
+
+            caption = self._try_caption(file)
+            if caption:
+                parts.append(f"Image Description: {caption}")
+
+            text = ", ".join(parts)
+            if not text:
                 raise IngestionError(
-                    f"Image {file.file_name} didn't produce text via OCR, please enable API."
+                    f"Image {file.file_name} produced no text via OCR or API captioning."
                 )
             return text, self.extract_metadata(file)
         except IngestionError as e:
             raise e
         except Exception as e:
             raise IngestionError(f"Failed to extract text via OCR: {str(e)}") from e
+
+    def _try_caption(self, file: IngestableFile) -> str | None:
+        """Best-effort caption: returns None instead of failing the ingestion.
+
+        Captions are an enrichment on top of OCR, so a missing API key or a
+        failing API call must not discard text that OCR already extracted.
+        """
+        if not self.use_api or self.client is None:
+            return None
+        try:
+            return (self.api_caption(file) or "").strip() or None
+        except IngestionError as e:
+            logger.warning("Skipping caption for %s: %s", file.file_name, e)
+            return None
 
     def ocr_extract(self, file):
         try:
@@ -91,7 +132,9 @@ class ImageOCRIngestor(BaseIngestor):
 
         try:
             file.file_obj.seek(0)
-            base64_image = encode_image(file.file_obj)
+            image_bytes = file.file_obj.read()
+            base64_image = base64.b64encode(image_bytes).decode("utf-8")
+            mime_type = detect_mime_type(image_bytes)
 
             response = self.client.chat.completions.create(
                 model=LLM_VISION_MODEL,
@@ -120,7 +163,7 @@ class ImageOCRIngestor(BaseIngestor):
                             {
                                 "type": "image_url",
                                 "image_url": {
-                                    "url": f"data:image/jpeg;base64,{base64_image}"
+                                    "url": f"data:{mime_type};base64,{base64_image}"
                                 },
                             },
                         ],
