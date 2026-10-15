@@ -205,6 +205,32 @@ class TestUpload:
 
         assert resp.status_code == 500
         assert "redis down" in resp.json()["detail"]
+        mock_state.update_file.assert_called_once_with(
+            99,
+            status="Ingestion Failed",
+            error_msg="Failed to queue ingestion: redis down",
+        )
+
+    @patch("backend.app.process_ingest_file")
+    @patch("backend.app.APP_STATE")
+    @patch("backend.app.FILE_STORE")
+    def test_dispatch_failure_still_returns_500_if_status_update_fails(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
+        """If recording the failure also fails, the original 500 is still returned."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+        mock_fs.store.return_value = 42
+        mock_state.insert_file.return_value = 99
+        mock_task.delay.side_effect = ConnectionError("redis down")
+        mock_state.update_file.side_effect = AppStateError("db locked")
+
+        resp = client.post(
+            "/upload/",
+            files=_fake_file("note.txt", b"data"),
+        )
+
+        assert resp.status_code == 500
+        assert "redis down" in resp.json()["detail"]
 
 
 # ===================================================================

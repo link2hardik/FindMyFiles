@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, HTTPException, Response, UploadFile
 import asyncio
+import logging
 from typing import Annotated
 from backend.filestore.base_filestore import FileStoreError, IngestableFile
 from backend.filestore.local_filestore import DataNotFoundError
@@ -11,6 +12,7 @@ from backend.config import FILE_STORE, VECTOR_STORE, APP_STATE
 from backend.search import SearchRequest, build_where, shape_search_response
 
 app = FastAPI()
+logger = logging.getLogger(__name__)
 
 MEDIA_TYPES = {
     "txt": "text/plain",
@@ -56,6 +58,16 @@ async def upload_file(file: Annotated[UploadFile, File()]):
         try:
             task = process_ingest_file.delay(file_id, app_state_id)
         except Exception as e:
+            # The file is stored but will never be processed; record that so
+            # the row does not sit in "Storage Complete" indefinitely.
+            try:
+                APP_STATE.update_file(
+                    app_state_id,
+                    status="Ingestion Failed",
+                    error_msg=f"Failed to queue ingestion: {e}",
+                )
+            except AppStateError:
+                logger.exception("Could not mark app_state %s as failed", app_state_id)
             raise HTTPException(status_code=500, detail=str(e)) from e
 
         return {
