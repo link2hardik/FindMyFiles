@@ -15,6 +15,8 @@ REQUEST_TIMEOUT = (10, 300)
 POLL_INTERVAL_SECONDS = 1.0
 POLL_TIMEOUT_SECONDS = 600
 PAGE_SIZE = 10
+ID = os.getenv("USER_ID", "admin")
+PASSWORD = os.getenv("PASSWORD", "123")
 
 STATUS_ORDER = [
     "Storage Complete",
@@ -545,4 +547,4 @@ with gr.Blocks(title="FindMyFiles") as demo:
     demo.load(load_stats, outputs=stats_outputs)
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860, share=False)
+    demo.launch(server_name="0.0.0.0", server_port=7860, share=False, auth=(ID,PASSWORD))
