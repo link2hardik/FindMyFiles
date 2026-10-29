@@ -113,6 +113,12 @@ Stop services without deleting persistent volumes:
 docker compose down
 ```
 
+For development (backend hot-reload and source mounts), pass both files explicitly:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+```
+
 Use `docker compose down -v` only when you intentionally want to delete application and Redis data.
 
 ## API Endpoints
