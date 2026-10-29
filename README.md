@@ -127,6 +127,7 @@ Use `docker compose down -v` only when you intentionally want to delete applicat
 | --- | --- | --- |
 | `GET` | `/` | Application status and ingestion records |
 | `POST` | `/upload/` | Upload a supported file and queue ingestion |
+| `POST` | `/upload/batch/` | Upload multiple files in one request; queues each and returns per-file results (queued / rejected / failed) |
 | `POST` | `/search/` | Search indexed content with a natural-language query |
 | `GET` | `/files/` | List files and ingestion metadata |
 | `GET` | `/files/{app_state_id}` | Get the ingestion status by the `app_state_id` returned from `/upload/` |
