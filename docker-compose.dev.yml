@@ -1,52 +1,47 @@
 # =============================================================================
 # FindMyFiles Docker Compose - Development Overrides
 # =============================================================================
-# This file is automatically loaded by docker compose and overrides the base
-# configuration for local development.
+# NOT loaded automatically. Use it together with the base file:
 #
-# Usage: docker compose up  (automatically uses this file)
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+#
+# Dev changes:
+#   - backend: uvicorn --reload, source bind-mounted, reloader ignores data/
+#   - worker:  code is baked into the image; rebuild or restart after edits
+#   - frontend: no bind mount; restart the container after edits
 # =============================================================================
 
 services:
   # ---------------------------------------------------------------------------
-  # Backend - Enable hot-reload for development
+  # Backend - hot-reload for development
   # ---------------------------------------------------------------------------
   backend:
-    # Override command to enable hot-reload
     command: >
       uvicorn backend.app:app
       --host 0.0.0.0
       --port 8000
       --reload
       --reload-dir /app/backend
-    # Mount source code for live editing (requires bind mount)
+      --reload-exclude 'data/*'
     volumes:
       - ./backend:/app/backend
       - app-data:/app/backend/data
-    environment:
-      - LOG_LEVEL=debug
 
   # ---------------------------------------------------------------------------
-  # Worker - Enable hot-reload for development
+  # Worker - no code mount, no reloader (Celery does not auto-reload)
   # ---------------------------------------------------------------------------
   worker:
     command: >
       celery -A backend.celery_app worker
-      --loglevel=debug
+      --loglevel=info
       --concurrency=2
+      --max-tasks-per-child=100
     volumes:
-      - ./backend:/app/backend
       - app-data:/app/backend/data
-    environment:
-      - LOG_LEVEL=debug
 
   # ---------------------------------------------------------------------------
-  # Frontend - Enable hot-reload for development
+  # Frontend - no code mount (restart the container after edits)
   # ---------------------------------------------------------------------------
   frontend:
     command: >
       python -m frontend.app
-    volumes:
-      - ./frontend:/app/frontend
-    environment:
-      - LOG_LEVEL=debug
