@@ -43,7 +43,9 @@ class LocalSQLiteFileStore(BaseFileStore):
             DATABASE_URL = f"sqlite:///{os.path.join(self.path, 'file_metadata.db')}"
             os.makedirs(self.path, exist_ok=True)
 
-            self.engine = create_engine(DATABASE_URL, echo=True)
+            self.engine = create_engine(
+                DATABASE_URL, echo=os.getenv("SQL_ECHO", "").lower() in {"1", "true"}
+            )
 
             SQLModel.metadata.create_all(self.engine)
         except Exception as e:

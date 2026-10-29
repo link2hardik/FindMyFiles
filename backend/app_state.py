@@ -47,7 +47,7 @@ class AppState:
             os.makedirs(db_path, exist_ok=True)
             self.engine = create_engine(
                 self.DATABASE_URL,
-                echo=True,
+                echo=os.getenv("SQL_ECHO", "").lower() in {"1", "true"},
                 connect_args={"check_same_thread": False},
             )
             with self.engine.connect() as conn:
