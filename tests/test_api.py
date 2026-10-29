@@ -8,7 +8,7 @@ Celery workers are involved.
 
 import io
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -31,6 +31,17 @@ client = TestClient(app)
 def _fake_file(name="test.txt", content=b"hello"):
     """Return a files dict for multipart uploads."""
     return {"file": (name, io.BytesIO(content), "application/octet-stream")}
+
+
+def _fake_multi_files(files):
+    """Return a files list for multipart batch uploads.
+
+    `files` is an iterable of (name, content) pairs.
+    """
+    return [
+        ("files", (name, io.BytesIO(content), "application/octet-stream"))
+        for name, content in files
+    ]
 
 
 def _fake_ingestable(name="test.txt", content=b"hello"):
@@ -231,6 +242,218 @@ class TestUpload:
 
         assert resp.status_code == 500
         assert "redis down" in resp.json()["detail"]
+
+
+# ===================================================================
+# POST /upload/batch/  (multi-file upload)
+# ===================================================================
+
+
+class TestBatchUpload:
+    @patch("backend.app.process_ingest_file")
+    @patch("backend.app.APP_STATE")
+    @patch("backend.app.FILE_STORE")
+    def test_successful_batch(self, mock_fs, mock_state, mock_task, monkeypatch):
+        """POST /upload/batch/ with two valid files stores, tracks, and
+        dispatches both, returning one result per file."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+        mock_fs.store.side_effect = [42, 43]
+        mock_state.insert_file.side_effect = [99, 100]
+        mock_task.delay.side_effect = [MagicMock(id="task-a"), MagicMock(id="task-b")]
+
+        resp = client.post(
+            "/upload/batch/",
+            files=_fake_multi_files([("a.txt", b"aaa"), ("b.txt", b"bbb")]),
+        )
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["queued_count"] == 2
+        assert body["rejected_count"] == 0
+        assert body["failed_count"] == 0
+        files = body["files"]
+        assert [f["file_name"] for f in files] == ["a.txt", "b.txt"]
+        assert [f["status"] for f in files] == ["queued", "queued"]
+        assert [f["file_id"] for f in files] == [42, 43]
+        assert [f["app_state_id"] for f in files] == [99, 100]
+        assert [f["task_id"] for f in files] == ["task-a", "task-b"]
+        assert all(f["error"] is None for f in files)
+        assert mock_fs.store.call_count == 2
+        assert mock_state.insert_file.call_count == 2
+        assert mock_task.delay.call_args_list == [call(42, 99), call(43, 100)]
+
+    @patch("backend.app.process_ingest_file")
+    @patch("backend.app.APP_STATE")
+    @patch("backend.app.FILE_STORE")
+    def test_mixed_batch_queues_supported_and_rejects_unsupported(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
+        """An unsupported file is rejected per-file without failing the batch."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+        mock_fs.store.return_value = 42
+        mock_state.insert_file.return_value = 99
+        mock_task.delay.return_value = MagicMock(id="task-a")
+
+        resp = client.post(
+            "/upload/batch/",
+            files=_fake_multi_files([("good.txt", b"data"), ("bad.exe", b"MZ")]),
+        )
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["queued_count"] == 1
+        assert body["rejected_count"] == 1
+        assert body["failed_count"] == 0
+        good, bad = body["files"]
+        assert good["status"] == "queued"
+        assert good["file_id"] == 42
+        assert bad["status"] == "rejected"
+        assert bad["file_id"] is None
+        assert bad["app_state_id"] is None
+        assert "Unsupported file extension: exe" in bad["error"]
+        mock_fs.store.assert_called_once()
+        mock_state.insert_file.assert_called_once()
+        mock_task.delay.assert_called_once_with(42, 99)
+
+    def test_all_unsupported_returns_422(self, monkeypatch):
+        """A batch where every file has an unsupported extension returns 422."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+
+        resp = client.post(
+            "/upload/batch/",
+            files=_fake_multi_files([("a.exe", b"MZ"), ("b.exe", b"MZ")]),
+        )
+
+        assert resp.status_code == 422
+        detail = resp.json()["detail"]
+        assert "No files with supported extensions" in detail["message"]
+        assert detail["acceptable_formats"] == ["txt"]
+
+    def test_missing_files_field_returns_422(self):
+        """A request without the `files` field is rejected by validation."""
+        resp = client.post(
+            "/upload/batch/",
+            files=[("file", ("a.txt", io.BytesIO(b"data"), "text/plain"))],
+        )
+
+        assert resp.status_code == 422
+        assert any(
+            err["type"] == "missing" and err["loc"] == ["body", "files"]
+            for err in resp.json()["detail"]
+        )
+
+    @patch("backend.app.process_ingest_file")
+    @patch("backend.app.APP_STATE")
+    @patch("backend.app.FILE_STORE")
+    def test_store_failure_fails_only_that_file(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
+        """A store failure marks only that file as failed; others proceed."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+        mock_fs.store.side_effect = [FileStoreError("disk full"), 43]
+        mock_state.insert_file.return_value = 100
+        mock_task.delay.return_value = MagicMock(id="task-b")
+
+        resp = client.post(
+            "/upload/batch/",
+            files=_fake_multi_files([("a.txt", b"aaa"), ("b.txt", b"bbb")]),
+        )
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["queued_count"] == 1
+        assert body["failed_count"] == 1
+        failed, queued = body["files"]
+        assert failed["file_name"] == "a.txt"
+        assert failed["status"] == "failed"
+        assert "disk full" in failed["error"]
+        assert queued["file_name"] == "b.txt"
+        assert queued["status"] == "queued"
+        assert queued["file_id"] == 43
+        mock_state.insert_file.assert_called_once()
+        mock_task.delay.assert_called_once_with(43, 100)
+
+    @patch("backend.app.process_ingest_file")
+    @patch("backend.app.APP_STATE")
+    @patch("backend.app.FILE_STORE")
+    def test_dispatch_failure_marks_file_failed(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
+        """A Celery dispatch failure marks that file failed and records it."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+        mock_fs.store.side_effect = [42, 43]
+        mock_state.insert_file.side_effect = [99, 100]
+        mock_task.delay.side_effect = [
+            ConnectionError("redis down"),
+            MagicMock(id="task-b"),
+        ]
+
+        resp = client.post(
+            "/upload/batch/",
+            files=_fake_multi_files([("a.txt", b"aaa"), ("b.txt", b"bbb")]),
+        )
+
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["queued_count"] == 1
+        assert body["failed_count"] == 1
+        first, second = body["files"]
+        assert first["status"] == "failed"
+        assert "redis down" in first["error"]
+        assert second["status"] == "queued"
+        mock_state.update_file.assert_called_once_with(
+            99,
+            status="Ingestion Failed",
+            error_msg="Failed to queue ingestion: redis down",
+        )
+
+    @patch("backend.app.process_ingest_file")
+    @patch("backend.app.APP_STATE")
+    @patch("backend.app.FILE_STORE")
+    def test_all_server_failures_return_500_with_per_file_details(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
+        """When every file hits a server-side error, return 500 plus details."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+        mock_fs.store.side_effect = [
+            FileStoreError("disk full"),
+            FileStoreError("disk full"),
+        ]
+
+        resp = client.post(
+            "/upload/batch/",
+            files=_fake_multi_files([("a.txt", b"aaa"), ("b.txt", b"bbb")]),
+        )
+
+        assert resp.status_code == 500
+        detail = resp.json()["detail"]
+        assert detail["message"] == "All uploads failed"
+        assert [f["status"] for f in detail["files"]] == ["failed", "failed"]
+        assert all("disk full" in f["error"] for f in detail["files"])
+        mock_state.insert_file.assert_not_called()
+        mock_task.delay.assert_not_called()
+
+    @patch("backend.app.process_ingest_file")
+    @patch("backend.app.APP_STATE")
+    @patch("backend.app.FILE_STORE")
+    def test_rejected_and_failed_without_queued_returns_500(
+        self, mock_fs, mock_state, mock_task, monkeypatch
+    ):
+        """A batch that queued nothing and had server failures returns 500."""
+        monkeypatch.setattr(BaseIngestor, "all_formats", {"txt"})
+        mock_fs.store.side_effect = FileStoreError("disk full")
+
+        resp = client.post(
+            "/upload/batch/",
+            files=_fake_multi_files([("a.txt", b"aaa"), ("bad.exe", b"MZ")]),
+        )
+
+        assert resp.status_code == 500
+        detail = resp.json()["detail"]
+        assert detail["message"] == "All uploads failed"
+        statuses = [f["status"] for f in detail["files"]]
+        assert "rejected" in statuses
+        assert "failed" in statuses
 
 
 # ===================================================================
