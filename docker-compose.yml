@@ -83,7 +83,7 @@ services:
     command: >
       celery -A backend.celery_app worker
       --loglevel=info
-      --concurrency=4
+      --concurrency=2
       --max-tasks-per-child=100
     environment:
       # LLM API Configuration (OpenAI-compatible)
